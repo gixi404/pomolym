@@ -1,63 +1,159 @@
-import { AlarmClockIcon, XIcon } from "lucide-react";
+import useLocalStorage from "../hooks/useLocalStorage";
+import { CheckSquare2Icon, HeartIcon, SquareIcon, XIcon } from "lucide-react";
 import { useTimer } from "../context/TimerContext";
-import { type FormEvent, useState } from "react";
-import type { Component } from "../utils/types";
+import { type SyntheticEvent, useEffect } from "react";
+import type { Component, InputChange } from "../utils/types";
 
 function SettingsModal({ closeModal }: Props): Component {
-  const { updateSettings } = useTimer();
-  const [work, setWork] = useState<number>(25);
-  const [breakTime, setBreakTime] = useState<number>(5);
+  const { updateSettings } = useTimer(),
+    [focusTime, setFocusTime] = useLocalStorage("focus-time", 25),
+    [relaxTime, setRelaxTime] = useLocalStorage("relax-time", 5),
+    [hiddenTime, setHiddenTime] = useLocalStorage("hidden-time", false),
+    [notifications, setNotifications] = useLocalStorage("notifications", true),
+    [sounds, setSounds] = useLocalStorage("sounds", true);
 
-  function handleSubmit(e: FormEvent): void {
-    e.preventDefault();
-    updateSettings(work, breakTime);
-    closeModal();
+  useEffect(() => {
+    updateSettings(focusTime, relaxTime);
+  }, [focusTime, relaxTime]);
+
+  function handleInput(e: InputChange, isFocus: boolean): void {
+    const setState = isFocus ? setFocusTime : setRelaxTime;
+    const val: string = e.target.value;
+    if (/^\d*$/.test(val)) {
+      if (val == "") return setState(0);
+      const numericVal: number = Number(val);
+      if (numericVal >= 1 && numericVal <= 999) return setState(numericVal);
+    }
   }
 
   return (
-    <div className="fixed flex w-full z-50 backdrop-blur-md h-full items-center justify-center">
-      <div className="bg-[#8E1616] p-6 rounded-lg w-72 text-[#EEEEEE]">
+    <section
+      onClick={closeModal}
+      className="fixed flex flex-col w-full gap-y-6 z-50 bg-[#1D1616] h-full items-center justify-center"
+    >
+      <div
+        onClick={(e: SyntheticEvent) => e.stopPropagation()}
+        className="bg-[#8E1616] p-6 rounded-lg w-70 text-[#EEEEEE]"
+      >
         <div className="flex items-center justify-between mb-4">
-          <p className="text-xl font-bold flex items-center justify-start gap-x-3">
-            <AlarmClockIcon size={20} /> Settings
-          </p>
+          <p className="text-xl font-bold">Settings</p>
           <XIcon
-            size={20}
+            size={24}
             onClick={closeModal}
+            strokeWidth={2.5}
             className="cursor-pointer text-[#EEEEEE] hover:text-[#efa6a6]"
           />
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm mb-1">Work Minutes</label>
+        <form className="[&>label>input]:outline-0 flex flex-col w-full justify-start items-center gap-y-3 [&>label]:text-sm">
+          <label>
+            Focus minutes
             <input
-              type="number"
-              value={work}
-              onChange={e => setWork(Number(e.target.value))}
-              className="w-full bg-[#1D1616] rounded p-2 text-[#EEEEEE] border border-[#D84040]"
+              id="focus-input"
+              type="text"
+              className="mt-1 w-full bg-[#1D1616] rounded p-2 text-[#EEEEEE] border border-[#D84040]"
+              pattern="\d*"
+              max={999}
+              min={1}
+              onChange={(e: InputChange) => handleInput(e, true)}
+              value={focusTime == 0 ? "" : focusTime}
+              onBlur={() => focusTime == 0 && setFocusTime(25)}
             />
-          </div>
+          </label>
 
-          <div>
-            <label className="block text-sm mb-1">Break Minutes</label>
+          <label>
+            Relax minutes
             <input
-              type="number"
-              value={breakTime}
-              onChange={e => setBreakTime(Number(e.target.value))}
-              className="w-full bg-[#1D1616] rounded p-2 text-[#EEEEEE] border border-[#D84040]"
+              id="relax-input"
+              type="text"
+              pattern="\d*"
+              className="mt-1 w-full bg-[#1D1616] rounded p-2 text-[#EEEEEE] border border-[#D84040]"
+              max={999}
+              min={1}
+              value={relaxTime == 0 ? "" : relaxTime}
+              onChange={(e: InputChange) => handleInput(e, false)}
+              onBlur={() => relaxTime == 0 && setRelaxTime(5)}
             />
-          </div>
+          </label>
 
-          <button
-            type="submit"
-            className="w-full bg-[#D84040] text-[#EEEEEE] py-2 rounded hover:bg-[#8E1616] transition-colors"
-          >
-            Save
-          </button>
+          <label className="flex items-center justify-between w-full mt-2 mb-1">
+            <p>Sounds</p>
+            {sounds ? (
+              <CheckSquare2Icon
+                size={22}
+                onClick={() => {
+                  setSounds(false);
+                  location.reload();
+                }}
+              />
+            ) : (
+              <SquareIcon
+                size={22}
+                onClick={() => {
+                  setSounds(true);
+                  location.reload();
+                }}
+              />
+            )}
+          </label>
+
+          <label className="flex items-center justify-between w-full my-1">
+            <p>Notifications</p>
+            {notifications ? (
+              <CheckSquare2Icon
+                size={22}
+                onClick={() => {
+                  setNotifications(false);
+                  location.reload();
+                }}
+              />
+            ) : (
+              <SquareIcon
+                size={22}
+                onClick={() => {
+                  setNotifications(true);
+                  location.reload();
+                }}
+              />
+            )}
+          </label>
+
+          <label className="flex items-center justify-between w-full my-1">
+            <p>Hidden time</p>
+            {hiddenTime ? (
+              <CheckSquare2Icon
+                size={22}
+                onClick={() => {
+                  setHiddenTime(false);
+                  location.reload();
+                }}
+              />
+            ) : (
+              <SquareIcon
+                size={22}
+                onClick={() => {
+                  setHiddenTime(true);
+                  location.reload();
+                }}
+              />
+            )}
+          </label>
         </form>
       </div>
-    </div>
+      <footer className="text-sm lg:text-[15px] w-full text-center text-[#b2b2b2] flex justify-center items-center gap-x-1.5">
+        Developed with
+        <HeartIcon color="#ff8f8f" size={14} className="mt-1" />
+        by
+        <a
+          className="duration-75 hover:underline hover:text-white"
+          href="https://gixi.dev"
+          target="_blank"
+          rel="noreferrer"
+        >
+          gixi.dev
+        </a>
+      </footer>
+    </section>
   );
 }
 

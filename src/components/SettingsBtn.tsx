@@ -6,9 +6,9 @@ function SettingsBtn({ openModal }: Props): Component {
     <button
       type="button"
       onClick={openModal}
-      className="cursor-pointer absolute bottom-4 right-4 bg-[#8E1616] p-3 rounded-full hover:bg-[#D84040] transition-opacity opacity-85 hover:opacity-100"
+      className="cursor-pointer absolute bottom-4 right-4 lg:bottom-6 lg:right-6 transition-opacity opacity-70 hover:opacity-100"
     >
-      <SettingsIcon size={24} color="#EEEEEE" strokeWidth={1.5} />
+      <SettingsIcon size={24} color="#eee" strokeWidth={1.5} />
     </button>
   );
 }

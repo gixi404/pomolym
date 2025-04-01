@@ -1,7 +1,9 @@
+import useLocalStorage from "../hooks/useLocalStorage";
+import { playSound, showNotificaction } from "../utils/helpers";
 import {
-  Context,
+  type Context,
   createContext,
-  PropsWithChildren,
+  type PropsWithChildren,
   useContext,
   useEffect,
   useState,
@@ -9,13 +11,42 @@ import {
 import type { Component, Interval } from "../utils/types";
 
 export function TimerProvider({ children }: PropsWithChildren): Component {
-  const [timeLeft, setTimeLeft] = useState<number>(25 * 60),
-    [isRunning, setIsRunning] = useState<boolean>(false),
-    [isWorkMode, setIsWorkMode] = useState<boolean>(true),
-    [workMinutes, setWorkMinutes] = useState<number>(25),
-    [breakMinutes, setBreakMinutes] = useState<number>(5),
-    startTimer = (): void => setIsRunning(true),
-    pauseTimer = (): void => setIsRunning(false);
+  const [isRunning, setIsRunning] = useState<boolean>(false),
+    [isFocusMode, setIsFocusMode] = useState<boolean>(true),
+    [focusMinutes, setFocusMinutes] = useLocalStorage("focus-time", 25),
+    [relaxMinutes, setRelaxMinutes] = useLocalStorage("relax-time", 5),
+    [timeLeft, setTimeLeft] = useState<number>(focusMinutes * 60),
+    [isFinished, setIsFinished] = useState<boolean>(false),
+    [isPaused, setIsPaused] = useState<boolean>(false),
+    [notifications] = useLocalStorage("notifications", true),
+    [sounds] = useLocalStorage("sounds", true),
+    toggleMode = (): void => {
+      setIsFocusMode(!isFocusMode);
+      setTimeLeft((isFocusMode ? relaxMinutes : focusMinutes) * 60);
+      setIsRunning(false);
+      setIsPaused(true);
+    },
+    startTimer = (): void => {
+      setIsRunning(true);
+      setIsPaused(false);
+    },
+    pauseTimer = (): void => {
+      setIsRunning(false);
+      setIsPaused(true);
+    },
+    resetTimer = (): void => {
+      setIsRunning(false);
+      setIsPaused(false);
+      setTimeLeft(isFocusMode ? focusMinutes * 60 : relaxMinutes * 60);
+    };
+
+  useEffect(() => {
+    if (isFinished) {
+      playSound(sounds);
+      showNotificaction(isFocusMode, notifications);
+      setIsFinished(false);
+    }
+  }, [isFinished]);
 
   useEffect(() => {
     if (!isRunning) return;
@@ -24,25 +55,31 @@ export function TimerProvider({ children }: PropsWithChildren): Component {
       setTimeLeft((prev: number) => {
         if (prev <= 1) {
           clearInterval(interval);
-          setIsWorkMode((prevMode: boolean) => !prevMode);
-          return isWorkMode ? breakMinutes * 60 : workMinutes * 60;
+          setIsFinished(true);
+
+          if (isFocusMode) {
+            setIsRunning(false);
+            setIsFocusMode(false);
+            setTimeLeft(relaxMinutes * 60);
+          } else {
+            setIsRunning(false);
+            setIsFocusMode(true);
+            setTimeLeft(focusMinutes * 60);
+          }
+
+          return prev;
         }
         return prev - 1;
       });
-    }, 1000);
+    }, 10); //! cambiar a 1000
 
     return () => clearInterval(interval);
-  }, [isRunning, isWorkMode, workMinutes, breakMinutes]);
+  }, [isRunning, isFocusMode, focusMinutes, relaxMinutes]);
 
-  function resetTimer(): void {
-    setIsRunning(false);
-    setTimeLeft(isWorkMode ? workMinutes * 60 : breakMinutes * 60);
-  }
-
-  function updateSettings(work: number, breakTime: number): void {
-    setWorkMinutes(work);
-    setBreakMinutes(breakTime);
-    setTimeLeft(work * 60);
+  function updateSettings(focusTime: number, relaxTime: number): void {
+    setFocusMinutes(focusTime);
+    setRelaxMinutes(relaxTime);
+    setTimeLeft(focusTime * 60);
   }
 
   return (
@@ -50,13 +87,15 @@ export function TimerProvider({ children }: PropsWithChildren): Component {
       value={{
         timeLeft,
         isRunning,
-        isWorkMode,
-        workMinutes,
-        breakMinutes,
+        isFocusMode,
+        focusMinutes,
+        relaxMinutes,
         startTimer,
         pauseTimer,
         resetTimer,
         updateSettings,
+        isPaused,
+        toggleMode,
       }}
     >
       {children}
@@ -81,11 +120,13 @@ type TimerContext = TimerContextType | undefined;
 interface TimerContextType {
   timeLeft: number;
   isRunning: boolean;
-  isWorkMode: boolean;
-  workMinutes: number;
-  breakMinutes: number;
+  isFocusMode: boolean;
+  focusMinutes: number;
+  relaxMinutes: number;
+  isPaused: boolean;
   startTimer: () => void;
   pauseTimer: () => void;
   resetTimer: () => void;
-  updateSettings: (work: number, breakTime: number) => void;
+  toggleMode: () => void;
+  updateSettings: (focusTime: number, relaxTime: number) => void;
 }

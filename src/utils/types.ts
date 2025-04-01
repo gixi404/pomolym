@@ -1,5 +1,9 @@
+import type { ChangeEvent } from "react";
+
 type Component = React.JSX.Element | React.JSX.Element[];
 
 type Interval = ReturnType<typeof setInterval>;
 
-export type { Component, Interval };
+type InputChange = ChangeEvent<HTMLInputElement>;
+
+export type { Component, Interval, InputChange };
