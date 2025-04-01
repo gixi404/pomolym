@@ -71,7 +71,7 @@ export function TimerProvider({ children }: PropsWithChildren): Component {
         }
         return prev - 1;
       });
-    }, 10); //! cambiar a 1000
+    }, 1000);
 
     return () => clearInterval(interval);
   }, [isRunning, isFocusMode, focusMinutes, relaxMinutes]);
