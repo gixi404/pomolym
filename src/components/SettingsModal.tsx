@@ -1,7 +1,7 @@
 import useLocalStorage from "../hooks/useLocalStorage";
 import { CheckSquare2Icon, HeartIcon, SquareIcon, XIcon } from "lucide-react";
 import { useTimer } from "../context/TimerContext";
-import { type SyntheticEvent, useEffect } from "react";
+import { type SyntheticEvent, useEffect, useState } from "react";
 import type { Component, InputChange } from "../utils/types";
 
 function SettingsModal({ closeModal }: Props): Component {
@@ -10,16 +10,21 @@ function SettingsModal({ closeModal }: Props): Component {
     [relaxTime, setRelaxTime] = useLocalStorage("relax-time", 5),
     [hiddenTime, setHiddenTime] = useLocalStorage("hidden-time", false),
     [notifications, setNotifications] = useLocalStorage("notifications", true),
-    [sounds, setSounds] = useLocalStorage("sounds", true);
+    [sounds, setSounds] = useLocalStorage("sounds", true),
+    [hasChanges, setHasChanges] = useState<boolean>(false);
 
   useEffect(() => {
-    updateSettings(focusTime, relaxTime);
+    if (hasChanges) {
+      updateSettings(focusTime, relaxTime);
+    }
   }, [focusTime, relaxTime]);
 
   function handleInput(e: InputChange, isFocus: boolean): void {
-    const setState = isFocus ? setFocusTime : setRelaxTime;
     const val: string = e.target.value;
+    const setState: Function = isFocus ? setFocusTime : setRelaxTime;
+
     if (/^\d*$/.test(val)) {
+      setHasChanges(true);
       if (val == "") return setState(0);
       const numericVal: number = Number(val);
       if (numericVal >= 1 && numericVal <= 999) return setState(numericVal);

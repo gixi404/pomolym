@@ -24,7 +24,7 @@ export function TimerProvider({ children }: PropsWithChildren): Component {
       setIsFocusMode(!isFocusMode);
       setTimeLeft((isFocusMode ? relaxMinutes : focusMinutes) * 60);
       setIsRunning(false);
-      setIsPaused(true);
+      setIsPaused(false);
     },
     startTimer = (): void => {
       setIsRunning(true);
@@ -37,7 +37,7 @@ export function TimerProvider({ children }: PropsWithChildren): Component {
     resetTimer = (): void => {
       setIsRunning(false);
       setIsPaused(false);
-      setTimeLeft(isFocusMode ? focusMinutes * 60 : relaxMinutes * 60);
+      setTimeLeft((isFocusMode ? focusMinutes : relaxMinutes) * 60);
     };
 
   useEffect(() => {
@@ -79,7 +79,9 @@ export function TimerProvider({ children }: PropsWithChildren): Component {
   function updateSettings(focusTime: number, relaxTime: number): void {
     setFocusMinutes(focusTime);
     setRelaxMinutes(relaxTime);
-    setTimeLeft(focusTime * 60);
+    setTimeLeft((isFocusMode ? focusTime : relaxTime) * 60);
+    setIsRunning(false);
+    setIsPaused(false);
   }
 
   return (
