@@ -5,7 +5,7 @@ import { type SyntheticEvent, useEffect, useState } from "react";
 import type { Component, InputChange } from "../utils/types";
 
 function SettingsModal({ closeModal }: Props): Component {
-  const { updateSettings } = useTimer(),
+  const { updateSettings, isRunning } = useTimer(),
     [focusTime, setFocusTime] = useLocalStorage("focus-time", 25),
     [relaxTime, setRelaxTime] = useLocalStorage("relax-time", 5),
     [hiddenTime, setHiddenTime] = useLocalStorage("hidden-time", false),
@@ -29,6 +29,50 @@ function SettingsModal({ closeModal }: Props): Component {
       const numericVal: number = Number(val);
       if (numericVal >= 1 && numericVal <= 999) return setState(numericVal);
     }
+  }
+
+  function applyChanges(id: string): void {
+    switch (id) {
+      case "sounds-on":
+        setSounds(false);
+        location.reload();
+        break;
+
+      case "sounds-off":
+        setSounds(true);
+        location.reload();
+        break;
+
+      case "notifications-on":
+        setNotifications(false);
+        location.reload();
+        break;
+
+      case "notifications-off":
+        setNotifications(true);
+        location.reload();
+        break;
+
+      case "hidden-time-on":
+        setHiddenTime(false);
+        location.reload();
+        break;
+
+      case "hidden-time-off":
+        setHiddenTime(true);
+        location.reload();
+        break;
+
+      default:
+        () => {};
+        break;
+    }
+  }
+
+  function confirmChanges(id: string): void {
+    if (!isRunning) return applyChanges(id);
+    if (isRunning && confirm("If you make a change, the counter is reset."))
+      return applyChanges(id);
   }
 
   return (
@@ -86,18 +130,12 @@ function SettingsModal({ closeModal }: Props): Component {
             {sounds ? (
               <CheckSquare2Icon
                 size={22}
-                onClick={() => {
-                  setSounds(false);
-                  location.reload();
-                }}
+                onClick={() => confirmChanges("sounds-on")}
               />
             ) : (
               <SquareIcon
                 size={22}
-                onClick={() => {
-                  setSounds(true);
-                  location.reload();
-                }}
+                onClick={() => confirmChanges("sounds-off")}
               />
             )}
           </label>
@@ -107,18 +145,12 @@ function SettingsModal({ closeModal }: Props): Component {
             {notifications ? (
               <CheckSquare2Icon
                 size={22}
-                onClick={() => {
-                  setNotifications(false);
-                  location.reload();
-                }}
+                onClick={() => confirmChanges("notifications-on")}
               />
             ) : (
               <SquareIcon
                 size={22}
-                onClick={() => {
-                  setNotifications(true);
-                  location.reload();
-                }}
+                onClick={() => confirmChanges("notifications-off")}
               />
             )}
           </label>
@@ -128,27 +160,21 @@ function SettingsModal({ closeModal }: Props): Component {
             {hiddenTime ? (
               <CheckSquare2Icon
                 size={22}
-                onClick={() => {
-                  setHiddenTime(false);
-                  location.reload();
-                }}
+                onClick={() => confirmChanges("hidden-time-on")}
               />
             ) : (
               <SquareIcon
                 size={22}
-                onClick={() => {
-                  setHiddenTime(true);
-                  location.reload();
-                }}
+                onClick={() => confirmChanges("hidden-time-off")}
               />
             )}
           </label>
         </form>
       </div>
-      <footer className="text-sm lg:text-[15px] w-full text-center text-[#b2b2b2] flex justify-center items-center gap-x-1.5">
-        Developed with
+      <footer className="text-sm lg:text-[15px] w-full text-center text-[#b2b2b2] flex justify-center items-center">
+        <p>Developed&nbsp;with&nbsp;</p>
         <HeartIcon color="#ff8f8f" size={14} className="mt-1" />
-        by
+        <p>&nbsp;by&nbsp;</p>
         <a
           className="duration-75 hover:underline hover:text-white"
           href="https://gixi.dev"

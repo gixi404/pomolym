@@ -9,7 +9,6 @@
     "beforeBuildCommand": "pnpm run build",
     "frontendDist": "../dist"
   },
-
   "app": {
     "windows": [
       {
@@ -34,7 +33,7 @@
     "active": true,
     "targets": ["msi"],
     "publisher": "Pomolym",
-    "shortDescription": "Pomolym",
+    "shortDescription": "Pomolym: Minimalist Pomodoro",
     "longDescription": "Pomolym is a minimalist Pomodoro",
     "category": "Productivity",
     "icon": [
