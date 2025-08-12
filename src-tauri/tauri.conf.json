@@ -31,10 +31,9 @@
   },
   "bundle": {
     "active": true,
-    "targets": ["msi"],
+    "targets": ["msi", "rpm", "deb", "app"],
     "publisher": "Pomolym",
     "shortDescription": "Pomolym: Minimalist Pomodoro",
-    "longDescription": "Pomolym is a minimalist Pomodoro",
     "category": "Productivity",
     "icon": [
       "icons/32x32.png",
